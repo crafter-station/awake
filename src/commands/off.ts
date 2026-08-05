@@ -50,7 +50,6 @@ Examples:
         if (wasEnabled) {
           await setSleepDisabled(false);
         }
-        await cancelAutoOff();
         clearState();
 
         const reason = opts.ifExpired
@@ -68,20 +67,23 @@ Examples:
 
         if (format === "json") {
           printJson({ enabled: false, was_enabled: wasEnabled, reason });
-          return;
+        } else {
+          console.log("");
+          if (wasEnabled) {
+            console.log(
+              `  ${chalk.blue("○")} awake is ${chalk.bold("off")} - normal sleep behavior restored`,
+            );
+          } else {
+            console.log(
+              `  ${chalk.blue("○")} awake was already off - nothing to do`,
+            );
+          }
+          console.log("");
         }
 
-        console.log("");
-        if (wasEnabled) {
-          console.log(
-            `  ${chalk.blue("○")} awake is ${chalk.bold("off")} - normal sleep behavior restored`,
-          );
-        } else {
-          console.log(
-            `  ${chalk.blue("○")} awake was already off - nothing to do`,
-          );
-        }
-        console.log("");
+        // Last: when invoked by the launchd job itself, bootout kills this
+        // very process - everything above must already be done.
+        await cancelAutoOff();
       } catch (error) {
         handleError(error, format);
       }

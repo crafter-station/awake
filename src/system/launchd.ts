@@ -93,9 +93,13 @@ export async function scheduleAutoOff(until: Date): Promise<void> {
   }
 }
 
+// Remove the plist BEFORE bootout: when this runs inside the launchd job
+// itself (auto-off), bootout kills our own process instantly - anything
+// after it never executes. Callers must treat cancelAutoOff() as a
+// potential point of no return and do their cleanup first.
 export async function cancelAutoOff(): Promise<void> {
+  rmSync(plistPath(), { force: true });
   await exec(LAUNCHCTL, ["bootout", `gui/${uid()}/${LABEL}`], {
     allowFailure: true,
   });
-  rmSync(plistPath(), { force: true });
 }
