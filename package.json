@@ -1,0 +1,45 @@
+{
+  "name": "@crafter/awake",
+  "version": "0.1.0",
+  "description": "Keep your Mac awake with the lid closed - safe by default, built for humans and agents",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crafter-station/awake.git"
+  },
+  "keywords": [
+    "macos",
+    "sleep",
+    "clamshell",
+    "lid",
+    "pmset",
+    "caffeinate",
+    "cli",
+    "agents",
+    "menubar"
+  ],
+  "os": ["darwin"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": ["dist"],
+  "bin": {
+    "awake": "dist/bin/awake.js"
+  },
+  "scripts": {
+    "dev": "bun run bin/awake.ts",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "link:global": "bun run build && bun link"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.0"
+  }
+}
