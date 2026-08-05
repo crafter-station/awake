@@ -4,3 +4,6 @@ mac/.build/
 mac/dist/
 *.log
 .DS_Store
+.next/
+.vercel/
+next-env.d.ts
