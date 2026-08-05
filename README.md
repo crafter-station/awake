@@ -2,6 +2,8 @@
 
 Keep your Mac running with the lid closed. Safe by default, built for humans and agents.
 
+[![awake - Claude Code keeps working on the left while awake holds the lid-closed Mac awake on the right](.github/demo.png)](https://awake.crafter.run)
+
 macOS force-sleeps a laptop when the lid closes, no matter what `caffeinate` says. The only switch that overrides it is `pmset -a disablesleep 1`, which needs root. `awake` wraps that switch with the ergonomics and guardrails it deserves:
 
 - **Auto-off timer by default.** `awake on` keeps the Mac awake for 1 hour and then restores normal sleep on its own (via a `launchd` agent), so a forgotten toggle cannot drain your battery overnight.
