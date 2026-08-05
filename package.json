@@ -8,6 +8,11 @@
     "type": "git",
     "url": "git+https://github.com/crafter-station/awake.git"
   },
+  "homepage": "https://awake.crafter.run",
+  "bugs": "https://github.com/crafter-station/awake/issues",
+  "engines": {
+    "node": ">=20"
+  },
   "keywords": [
     "macos",
     "sleep",
@@ -23,7 +28,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": ["dist"],
+  "files": ["dist", "AGENTS.md"],
   "bin": {
     "awake": "dist/bin/awake.js"
   },
@@ -31,7 +36,8 @@
     "dev": "bun run bin/awake.ts",
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "link:global": "bun run build && bun link"
+    "link:global": "bun run build && bun link",
+    "prepublishOnly": "bun run typecheck && bun run build"
   },
   "dependencies": {
     "chalk": "^5.6.2",
