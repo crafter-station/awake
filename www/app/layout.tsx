@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { JsonLd } from "@/components/json-ld";
@@ -95,6 +96,7 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
         <JsonLd data={jsonLd} />
+        <Analytics />
       </body>
     </html>
   );
