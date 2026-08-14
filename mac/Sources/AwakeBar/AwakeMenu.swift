@@ -39,6 +39,8 @@ struct AwakeMenu: View {
         Button("Keep awake 30 min") { model.turnOn("30m") }
         Button("Keep awake 1 hour") { model.turnOn("1h") }
         Button("Keep awake 2 hours") { model.turnOn("2h") }
+        Button("Keep awake 4 hours") { model.turnOn("4h") }
+        Button("Keep awake 8 hours") { model.turnOn("8h") }
         Button("Keep awake until turned off") { model.turnOnForever() }
     }
 }
