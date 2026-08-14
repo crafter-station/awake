@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { cancelAutoOff } from "../system/launchd.js";
 import { getBattery, isSleepDisabled } from "../system/pmset.js";
 import { clearState, readState } from "../system/state.js";
+import { buildStatusPayload } from "../system/statusPayload.js";
 import { isSudoersConfigured } from "../system/sudoers.js";
 import {
   type GlobalFlags,
@@ -41,26 +42,21 @@ Examples:
           state = null;
         }
 
-        const until = state?.until ? new Date(state.until) : null;
-        const remainingSeconds = until
-          ? Math.max(0, Math.round((until.getTime() - Date.now()) / 1000))
-          : null;
-        const managed = enabled && state !== null;
-        const forever = enabled && state !== null && state.until === null;
+        const payload = buildStatusPayload(
+          enabled,
+          state,
+          battery,
+          sudoersConfigured,
+        );
 
         if (format === "json") {
-          printJson({
-            enabled,
-            managed,
-            forever,
-            since: state?.enabled_at ?? null,
-            until: state?.until ?? null,
-            remaining_seconds: remainingSeconds,
-            battery,
-            sudoers_configured: sudoersConfigured,
-          });
+          printJson(payload);
           return;
         }
+
+        const until = payload.until ? new Date(payload.until) : null;
+        const remainingSeconds = payload.remaining_seconds;
+        const { forever } = payload;
 
         console.log("");
         if (enabled) {
