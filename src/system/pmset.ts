@@ -34,6 +34,8 @@ export async function getBattery(): Promise<BatteryInfo> {
   return {
     percent: percentMatch?.[1] ? Number(percentMatch[1]) : null,
     on_ac: stdout.includes("'AC Power'"),
-    charging: /charging|charged/.test(stdout),
+    // The state token follows "NN%; " - anchor to the separator so
+    // "discharging" and "not charging" don't substring-match as charging.
+    charging: /;\s*(charging|finishing charge|charged)\b/.test(stdout),
   };
 }
