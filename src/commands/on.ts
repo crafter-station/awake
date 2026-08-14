@@ -3,6 +3,8 @@ import { Command } from "commander";
 import { cancelAutoOff, scheduleAutoOff } from "../system/launchd.js";
 import { getBattery, setSleepDisabled } from "../system/pmset.js";
 import { writeState } from "../system/state.js";
+import { buildStatusPayload } from "../system/statusPayload.js";
+import { isSudoersConfigured } from "../system/sudoers.js";
 import {
   type GlobalFlags,
   resolveFormat,
@@ -51,11 +53,12 @@ Examples:
           ? new Date(now.getTime() + durationSeconds * 1000)
           : null;
 
-        await setSleepDisabled(true);
-        writeState({
+        const state = {
           enabled_at: now.toISOString(),
           until: until ? until.toISOString() : null,
-        });
+        };
+        await setSleepDisabled(true);
+        writeState(state);
 
         try {
           if (until) {
@@ -72,13 +75,13 @@ Examples:
         const battery = await getBattery();
 
         if (format === "json") {
-          printJson({
-            enabled: true,
-            forever,
-            until: until ? until.toISOString() : null,
-            duration_seconds: durationSeconds,
+          const payload = buildStatusPayload(
+            true,
+            state,
             battery,
-          });
+            isSudoersConfigured(),
+          );
+          printJson({ ...payload, duration_seconds: durationSeconds });
           return;
         }
 

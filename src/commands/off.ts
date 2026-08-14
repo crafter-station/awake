@@ -2,8 +2,10 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { cancelAutoOff } from "../system/launchd.js";
 import { notify } from "../system/notify.js";
-import { isSleepDisabled, setSleepDisabled } from "../system/pmset.js";
+import { getBattery, isSleepDisabled, setSleepDisabled } from "../system/pmset.js";
 import { clearState, readState } from "../system/state.js";
+import { buildStatusPayload } from "../system/statusPayload.js";
+import { isSudoersConfigured } from "../system/sudoers.js";
 import {
   type GlobalFlags,
   resolveFormat,
@@ -66,7 +68,20 @@ Examples:
         }
 
         if (format === "json") {
-          printJson({ enabled: false, was_enabled: wasEnabled, reason });
+          // Skip the extra battery lookup for the unattended --if-expired
+          // path (launchd invokes this with no one reading it beyond the
+          // log file) - only build the full snapshot for manual/menu calls.
+          if (opts.ifExpired) {
+            printJson({ enabled: false, was_enabled: wasEnabled, reason });
+          } else {
+            const payload = buildStatusPayload(
+              false,
+              null,
+              await getBattery(),
+              isSudoersConfigured(),
+            );
+            printJson({ ...payload, was_enabled: wasEnabled, reason });
+          }
         } else {
           console.log("");
           if (wasEnabled) {
