@@ -1,6 +1,6 @@
 {
   "name": "@crafter/awake",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Keep your Mac awake with the lid closed - safe by default, built for humans and agents",
   "type": "module",
   "license": "MIT",
