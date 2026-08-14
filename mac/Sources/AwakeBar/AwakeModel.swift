@@ -47,7 +47,7 @@ final class AwakeModel: ObservableObject {
         invocation = Self.resolveInvocation()
         cliFound = invocation != nil
         refresh()
-        timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
         }
     }
@@ -86,18 +86,29 @@ final class AwakeModel: ObservableObject {
     func turnOnForever() { perform(["on", "--forever", "--json"]) }
     func turnOff() { perform(["off", "--json"]) }
 
+    // Action commands (on/off) now return the same JSON shape as `status`,
+    // so decode that reply directly instead of always following up with a
+    // separate `status --json` call - halves the subprocesses per click.
+    // Falls back to an explicit status call only if the action's own reply
+    // didn't decode (e.g. it errored and wrote to stderr instead).
     private func perform(_ action: [String]?) {
         guard let invocation else { return }
         Task.detached(priority: .userInitiated) { [weak self] in
-            if let action {
-                _ = Self.execute(invocation + action)
-            }
-            let output = Self.execute(invocation + ["status", "--json"])
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
-            let status = output.flatMap {
-                try? decoder.decode(Envelope<AwakeStatus>.self, from: $0).data
+            func decode(_ output: Data?) -> AwakeStatus? {
+                output.flatMap {
+                    try? decoder.decode(Envelope<AwakeStatus>.self, from: $0).data
+                }
             }
+
+            let status: AwakeStatus? = {
+                if let action, let decoded = decode(Self.execute(invocation + action)) {
+                    return decoded
+                }
+                return decode(Self.execute(invocation + ["status", "--json"]))
+            }()
+
             await MainActor.run { [weak self] in
                 guard let self, let status else { return }
                 self.status = status
@@ -143,7 +154,7 @@ final class AwakeModel: ObservableObject {
                 let content = UNMutableNotificationContent()
                 content.title = "Awake is still on"
                 content.body = "Your Mac is being kept awake with no timer. Turn it off from the menu bar when you are done."
-                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1800, repeats: true)
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 7200, repeats: true)
                 center.add(UNNotificationRequest(identifier: identifier, content: content, trigger: trigger))
             }
         }
