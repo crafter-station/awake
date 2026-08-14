@@ -154,7 +154,7 @@ final class AwakeModel: ObservableObject {
                 let content = UNMutableNotificationContent()
                 content.title = "Awake is still on"
                 content.body = "Your Mac is being kept awake with no timer. Turn it off from the menu bar when you are done."
-                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 7200, repeats: true)
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3600, repeats: true)
                 center.add(UNNotificationRequest(identifier: identifier, content: content, trigger: trigger))
             }
         }
