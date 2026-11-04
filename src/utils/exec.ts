@@ -49,11 +49,23 @@ export async function exec(
   }
 }
 
-export function spawnInteractive(cmd: string, args: string[]): Promise<number> {
+export function spawnInteractive(
+  cmd: string,
+  args: string[],
+  opts?: { input?: string },
+): Promise<number> {
   logDebug(`spawn (interactive): ${cmd} ${args.join(" ")}`);
   return new Promise((resolve) => {
-    const child = spawn(cmd, args, { stdio: "inherit" });
+    const input = opts?.input;
+    const child = spawn(cmd, args, {
+      stdio: [input === undefined ? "inherit" : "pipe", "inherit", "inherit"],
+    });
     child.on("close", (code) => resolve(code ?? 1));
     child.on("error", () => resolve(1));
+    if (input !== undefined) {
+      // A failed sudo exits without reading stdin; `close` reports that.
+      child.stdin?.on("error", () => {});
+      child.stdin?.end(input);
+    }
   });
 }

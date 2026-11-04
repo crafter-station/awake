@@ -1,8 +1,8 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import { cancelAutoOff, scheduleAutoOff } from "../system/launchd.js";
-import { getBattery, setSleepDisabled } from "../system/pmset.js";
-import { writeState } from "../system/state.js";
+import { getBattery, isSleepDisabled, setSleepDisabled } from "../system/pmset.js";
+import { clearState, writeState } from "../system/state.js";
 import { buildStatusPayload } from "../system/statusPayload.js";
 import { isSudoersConfigured } from "../system/sudoers.js";
 import {
@@ -57,9 +57,12 @@ Examples:
           enabled_at: now.toISOString(),
           until: until ? until.toISOString() : null,
         };
-        await setSleepDisabled(true);
-        writeState(state);
+        const wasDisabled = await isSleepDisabled();
 
+        // Arm the timer first: a crash after this point can't leave the
+        // machine sleepless without it. An armed timer with sleep still
+        // enabled is harmless - it fires, finds nothing to do, and cleans up.
+        writeState(state);
         try {
           if (until) {
             await scheduleAutoOff(until);
@@ -68,8 +71,22 @@ Examples:
           }
         } catch (schedulingError) {
           // Never leave the machine sleepless without its safety timer.
-          await setSleepDisabled(false);
+          clearState();
+          if (wasDisabled) {
+            await setSleepDisabled(false);
+          }
           throw schedulingError;
+        }
+
+        try {
+          await setSleepDisabled(true);
+        } catch (toggleError) {
+          // Keep the timer if an earlier session is still holding sleep off.
+          if (!wasDisabled) {
+            await cancelAutoOff();
+            clearState();
+          }
+          throw toggleError;
         }
 
         const battery = await getBattery();
